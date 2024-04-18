@@ -222,7 +222,6 @@ class Keychain {
 		var name_digest = crypto.createHmac('sha256', this.secrets.hmac_key).update(name).digest('hex');
 
 		var enc_val = cipherIV(name_digest + password, this.secrets.master_key);
-		console.log(enc_val);
 		if (enc_val !== null)
 		{
 			this.data.kvs[name_digest] = enc_val;
