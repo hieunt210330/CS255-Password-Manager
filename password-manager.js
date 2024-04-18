@@ -191,7 +191,11 @@ class Keychain {
 		if (this.data.kvs[name_digest]) 
 		{
 			var plaintext = decipherIV(this.data.kvs[name_digest], Buffer.from(this.secrets.master_key));
-			return plaintext;
+			if (plaintext.substring(0,64) !== name_digest)
+			{
+				return null;
+			}
+			return plaintext.substring(64);
 		} 
 		else 
 		{
@@ -206,17 +210,19 @@ class Keychain {
 	 *
 	 * Arguments:
 	 *   name: string
-	 *   value: string
+	 *   password: string
 	 * Return Type: void
 	 */
-	async set(name, value) 
+	async set(name, password) 
 	{
 		if (!this.ready) 
 		{
 			throw "Keychain not initialized.";
 		}
 		var name_digest = crypto.createHmac('sha256', this.secrets.hmac_key).update(name).digest('hex');
-		var enc_val = cipherIV(value, this.secrets.master_key);
+
+		var enc_val = cipherIV(name_digest + password, this.secrets.master_key);
+		console.log(enc_val);
 		if (enc_val !== null)
 		{
 			this.data.kvs[name_digest] = enc_val;
