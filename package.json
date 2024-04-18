@@ -1,0 +1,16 @@
+{
+  "name": "cs255_proj1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "password-manager.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^9.1.4",
+    "package.json": "^2.0.1"
+  }
+}
