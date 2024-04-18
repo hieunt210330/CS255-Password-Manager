@@ -109,7 +109,12 @@ class Keychain {
 			var keychain = new Keychain();
 
 			var new_keychain = await JSON.parse(repr);
-			var password_key = crypto.pbkdf2Sync(password, Buffer.from(new_keychain.secrets.master_salt), PBKDF2_ITERATIONS, 32, 'sha256');
+
+			new_keychain.secrets.master_salt = decodeBuffer(new_keychain.secrets.master_salt);
+			new_keychain.secrets.master_key = decodeBuffer(new_keychain.secrets.master_key);
+			new_keychain.secrets.hmac_salt = decodeBuffer(new_keychain.secrets.hmac_salt);
+			
+			var password_key = crypto.pbkdf2Sync(password, new_keychain.secrets.master_salt, PBKDF2_ITERATIONS, 32, 'sha256');
 
 			var plaintext = decipherIV(new_keychain.secrets.magic.toString('hex'), password_key);
 
@@ -125,7 +130,7 @@ class Keychain {
 			}
 			else
 			{
-				throw "Wrong password.";
+				throw Error("Wrong password.");
 			}
 		}
 	};
@@ -144,7 +149,20 @@ class Keychain {
     */ 
 	async dump() 
   	{
-		var encoded_store = JSON.stringify({ data: this.data, secrets: this.secrets, kvs: this.data.kvs });
+		var encoded_store = JSON.stringify(
+		{ 
+			data: this.data, 
+			secrets: 
+			{
+				master_salt: encodeBuffer(this.secrets.master_salt),
+				master_key: encodeBuffer(this.secrets.master_key),
+				hmac_key: this.secrets.hmac_key,
+				hmac_salt: encodeBuffer(this.secrets.hmac_salt),
+				magic: this.secrets.magic
+			}, 
+			kvs: this.data.kvs,
+			 
+		});
 		var checksum = crypto.createHash('sha256').update(encoded_store).digest('hex');
 		return [encoded_store, checksum];
 	};
