@@ -23,9 +23,9 @@ class Keychain {
 	 */
 	constructor() 
 	{
-		this.ready = false;
 
-		this.data = { 
+		this.data = {
+			kvs: {}
 		/* Store member variables that you intend to be public here
 			(i.e. information that will not compromise security if an adversary sees) */
 		};
@@ -38,6 +38,9 @@ class Keychain {
 		/* Store member variables that you intend to be private here
 			(information that an adversary should NOT see). */
 		};
+
+		this.ready = false;
+
 	};
 
   /** 
@@ -141,7 +144,7 @@ class Keychain {
     */ 
 	async dump() 
   	{
-		var encoded_store = JSON.stringify(this);
+		var encoded_store = JSON.stringify({ data: this.data, secrets: this.secrets, kvs: this.data.kvs });
 		var checksum = crypto.createHash('sha256').update(encoded_store).digest('hex');
 		return [encoded_store, checksum];
 	};
@@ -167,9 +170,9 @@ class Keychain {
 			this.secrets.hmac_key = crypto.createHash('sha256').update(this.secrets.master_key).digest('hex');
 		}
 		var name_digest = crypto.createHmac('sha256', this.secrets.hmac_key).update(name).digest('hex');
-		if (this.data[name_digest]) 
+		if (this.data.kvs[name_digest]) 
 		{
-			var plaintext = decipherIV(this.data[name_digest], Buffer.from(this.secrets.master_key));
+			var plaintext = decipherIV(this.data.kvs[name_digest], Buffer.from(this.secrets.master_key));
 			return plaintext;
 		} 
 		else 
@@ -198,7 +201,7 @@ class Keychain {
 		var enc_val = cipherIV(value, this.secrets.master_key);
 		if (enc_val !== null)
 		{
-			this.data[name_digest] = enc_val;
+			this.data.kvs[name_digest] = enc_val;
 		}
 		else
 		{
@@ -220,9 +223,9 @@ class Keychain {
 			throw "Keychain not initialized.";
 		}
 		var name_digest = crypto.createHmac('sha256', this.secrets.hmac_key).update(name).digest('hex');
-		if (this.data[name_digest]) 
+		if (this.data.kvs[name_digest]) 
 		{
-			delete this.data[name_digest];
+			delete this.data.kvs[name_digest];
 			return true;
 		} 
 		else 
